@@ -16,4 +16,24 @@ logging:
     org.springframework.web: WARN
     com.thoughtmechanix: DEBUG
 
-        
+  # 在git仓库的属性文件中配置以下属性，可以让本地属性覆盖远程属性
+  # spring.cloud.config.allow-override: true
+  # spring.cloud.config.override-none: true
+  # spring.cloud.config.override-system-properties: false
+
+  spring:
+    jpa:
+      database: POSTGRESQL
+      show-sql: false
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+    datasource:
+      platform: postgres
+      driverClassName: org.postgresql.Driver
+      # 若docker使用的DockerToolBox,则localhost为docker-machine的IP地址
+      url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:5432/eagle_eye_dev
+      username: postgres_dev
+      password: p0stgr@s
+      testWhileIdle: true
+      validationQuery: SELECT 1

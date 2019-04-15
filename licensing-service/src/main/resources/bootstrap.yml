@@ -10,3 +10,10 @@ spring:
 #      discovery:
 #        enabled: true
 #        serviceId: configserver
+
+# 下载 jce_policy-8.zip，将local_policy.jar和US_export_policy.jar
+# 移到/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home/jre/lib/security
+# 若为windows，则为jdk目录下的/jre/lib/security目录
+# 注意这个密钥需要配置在bootstrap.properties中
+encrypt:
+  key: IMSYMMETRIC
