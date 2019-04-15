@@ -44,7 +44,12 @@ public class LicenseService {
                 .withComment(config.getExampleProperty());
     }
 
-    @HystrixCommand
+    @HystrixCommand(
+            commandProperties = {
+                    //设置Hystrix调用的超时时间
+                    @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds",value = "1000")
+            }
+    )
     private Organization getOrganization(String organizationId) {
         return organizationRestClient.getOrganization(organizationId);
     }
@@ -65,16 +70,24 @@ public class LicenseService {
         }
     }
 
-    @HystrixCommand(//fallbackMethod = "buildFallbackLicenseList",
+    @HystrixCommand(
+            // 开启后备策略，指定后备方法
+            fallbackMethod = "buildFallbackLicenseList",
+            // 设置隔离的线程池名称
             threadPoolKey = "licenseByOrgThreadPool",
             threadPoolProperties =
-                    {@HystrixProperty(name = "coreSize",value="30"),
-                     @HystrixProperty(name="maxQueueSize", value="10")},
+                    {@HystrixProperty(name = "coreSize",value="30"),    //线程池中线程的最大数量
+                     @HystrixProperty(name="maxQueueSize", value="10")}, //定义一个位于线程池前的队列，它对传入的请求进行排队
             commandProperties={
+                    // 时间窗口中达到的最少请求数
                      @HystrixProperty(name="circuitBreaker.requestVolumeThreshold", value="10"),
+                    // 时间窗口中请求故障的最小百分比
                      @HystrixProperty(name="circuitBreaker.errorThresholdPercentage", value="75"),
+                    // 断路器跳闸后，Hystrix尝试进行服务调用之前将要等待的时间(毫秒)
                      @HystrixProperty(name="circuitBreaker.sleepWindowInMilliseconds", value="7000"),
+                     // Hystrix监视服务调用问题的窗口大小，默认10s(单位毫秒)
                      @HystrixProperty(name="metrics.rollingStats.timeInMilliseconds", value="15000"),
+                    //
                      @HystrixProperty(name="metrics.rollingStats.numBuckets", value="5")}
     )
     public List<License> getLicensesByOrg(String organizationId){
