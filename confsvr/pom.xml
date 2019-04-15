@@ -49,7 +49,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <start-class>com.thoughtmechanix.confsvr.ConfigServerApplication</start-class>
     <java.version>1.8</java.version>
-    <docker.image.name>johncarnell/tmx-confsvr</docker.image.name>
+    <docker.image.name>liuisdocker/tmx-confsvr</docker.image.name>
     <docker.image.tag>chapter5</docker.image.tag>
   </properties>
   <build>
@@ -81,8 +81,20 @@
          <plugin>
              <groupId>com.spotify</groupId>
              <artifactId>docker-maven-plugin</artifactId>
-             <version>0.4.10</version>
+             <version>1.1.0</version>
              <configuration>
+                 <!-- 私有仓库配置，需要settings.xml文件配合serverId对应的服务地址 -->
+                 <!-- settings.xml配置docker登录信息，username为用户名而不是email
+                     <server>
+                          <id>liuis-dockerhub</id>
+                          <username>liuisdocker</username>
+                          <password>9980aa</password>
+                     </server>
+                 -->
+                 <serverId>liuis-dockerhub</serverId>
+                 <!-- 推送到dockerhub  -->
+                 <registryUrl>docker.io</registryUrl>
+
                  <imageName>${docker.image.name}:${docker.image.tag}</imageName>
                  <dockerDirectory>${basedir}/target/dockerfile</dockerDirectory>
                  <resources>
@@ -92,7 +104,67 @@
                          <include>${project.build.finalName}.jar</include>
                      </resource>
                  </resources>
+                 <!-- 此处必须添加imageTag，不然removeImage不能成功 -->
+                 <imageTags>
+                     <imageTag>${docker.image.tag}</imageTag>
+                 </imageTags>
              </configuration>
+             <executions>
+                 <!-- package之前清除上一次构建的image -->
+                 <execution>
+                     <id>remove-image</id>
+                     <phase>package</phase>
+                     <goals>
+                         <goal>removeImage</goal>
+                     </goals>
+                     <configuration>
+                         <imageName>
+                             ${docker.image.name}:${docker.image.tag}
+                         </imageName>
+                     </configuration>
+                 </execution>
+                 <!-- 将docker:build绑定到package这个phase  -->
+                 <execution>
+                     <id>build-image</id>
+                     <phase>package</phase>
+                     <goals>
+                         <goal>build</goal>
+                     </goals>
+                     <configuration>
+                         <!-- imageName中若不指定tag，则会打上latest -->
+                         <imageName>${docker.image.name}:${docker.image.tag}</imageName>
+                         <!-- 可以使用<imageTags>标签打其他额外的tag -->
+                     </configuration>
+                 </execution>
+                 <!--<execution>-->
+                 <!--<id>tag-image</id>-->
+                 <!--<phase>install</phase>-->
+                 <!--<goals>-->
+                 <!--<goal>tag</goal>-->
+                 <!--</goals>-->
+                 <!--<configuration>-->
+                 <!--&lt;!&ndash; docker tag IMAGE[:TAG] [REGISTRY_HOST[:REGISTRY_PORT]/]REPOSITORY[:TAG]  &ndash;&gt;-->
+                 <!--&lt;!&ndash; images与IMAGE[:TAG]对应，必须在build阶段已经构建了 &ndash;&gt;-->
+                 <!--<image>${docker.image.name}/${docker.image.tag}:${project.version}</image>-->
+                 <!--&lt;!&ndash; newName与tag命令的第二个参数对应 &ndash;&gt;-->
+                 <!--<newName>-->
+                 <!--${docker.image.name}/${docker.image.tag}:${project.version}-->
+                 <!--</newName>-->
+                 <!--</configuration>-->
+                 <!--</execution>-->
+                 <execution>
+                     <id>push-image</id>
+                     <phase>install</phase>
+                     <goals>
+                         <goal>push</goal>
+                     </goals>
+                     <configuration>
+                         <imageName>
+                             ${docker.image.name}:${docker.image.tag}
+                         </imageName>
+                     </configuration>
+                 </execution>
+             </executions>
          </plugin>
          <plugin>
              <groupId>org.springframework.boot</groupId>
