@@ -12,15 +12,19 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * 扩展基本的HystrixConcurrencyStrategy，自定义Hystrix的并发策略
+ */
 public class ThreadLocalAwareStrategy extends HystrixConcurrencyStrategy{
     private HystrixConcurrencyStrategy existingConcurrencyStrategy;
 
+    // 传入已经存在的Hystrix并发策略
     public ThreadLocalAwareStrategy(
             HystrixConcurrencyStrategy existingConcurrencyStrategy) {
         this.existingConcurrencyStrategy = existingConcurrencyStrategy;
     }
 
+    // 重写以下4个并发策略的方法，当前existingConcurrencyStrategy不为空时，则调用当前并发策略的方法
     @Override
     public BlockingQueue<Runnable> getBlockingQueue(int maxQueueSize) {
         return existingConcurrencyStrategy != null
@@ -49,6 +53,8 @@ public class ThreadLocalAwareStrategy extends HystrixConcurrencyStrategy{
                 keepAliveTime, unit, workQueue);
     }
 
+    // 传入DelegatingUserContextCallable，将UserContext从执行用户REST服务调用的父线程，
+    // 传入为保护正在进行工作的方法的Hystrix命令线程
     @Override
     public <T> Callable<T> wrapCallable(Callable<T> callable) {
 

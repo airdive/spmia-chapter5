@@ -79,6 +79,8 @@ public class LicenseService {
                     {@HystrixProperty(name = "coreSize",value="30"),    //线程池中线程的最大数量
                      @HystrixProperty(name="maxQueueSize", value="10")}, //定义一个位于线程池前的队列，它对传入的请求进行排队
             commandProperties={
+                    // 隔离策略，默认为THREAD(信号量:SEMAPHORE)
+                    @HystrixProperty(name="execution.isolation.strategy", value="THREAD"),
                     // 时间窗口中达到的最少请求数
                      @HystrixProperty(name="circuitBreaker.requestVolumeThreshold", value="10"),
                     // 时间窗口中请求故障的最小百分比
@@ -87,7 +89,7 @@ public class LicenseService {
                      @HystrixProperty(name="circuitBreaker.sleepWindowInMilliseconds", value="7000"),
                      // Hystrix监视服务调用问题的窗口大小，默认10s(单位毫秒)
                      @HystrixProperty(name="metrics.rollingStats.timeInMilliseconds", value="15000"),
-                    //
+                    // 时间窗口中收集统计信息的次数，必须能被时间窗口整除
                      @HystrixProperty(name="metrics.rollingStats.numBuckets", value="5")}
     )
     public List<License> getLicensesByOrg(String organizationId){

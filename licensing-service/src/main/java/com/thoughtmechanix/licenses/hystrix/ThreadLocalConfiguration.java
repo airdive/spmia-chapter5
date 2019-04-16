@@ -19,6 +19,7 @@ public class ThreadLocalConfiguration {
         @PostConstruct
         public void init() {
             // Keeps references of existing Hystrix plugins.
+            //先获取Hystrix的所有其他插件
             HystrixEventNotifier eventNotifier = HystrixPlugins.getInstance()
                     .getEventNotifier();
             HystrixMetricsPublisher metricsPublisher = HystrixPlugins.getInstance()
@@ -30,6 +31,7 @@ public class ThreadLocalConfiguration {
 
             HystrixPlugins.reset();
 
+            // 使用自定义的Hystrix的并发策略
             HystrixPlugins.getInstance().registerConcurrencyStrategy(new ThreadLocalAwareStrategy(existingConcurrencyStrategy));
             HystrixPlugins.getInstance().registerEventNotifier(eventNotifier);
             HystrixPlugins.getInstance().registerMetricsPublisher(metricsPublisher);
